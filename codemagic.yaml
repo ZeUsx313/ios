@@ -1,0 +1,27 @@
+workflows:
+  ios-app:
+    name: Build My Zeus App
+    instance_type: mac_mini_m1
+    environment:
+      xcode: latest
+      vars:
+        # اسم المشروع والمخطط من القالب هو "Animals"
+        PROJECT_NAME: "Animals"
+        SCHEME_NAME: "Animals"
+    scripts:
+      - name: Build and Export IPA
+        script: | 
+          xcodebuild archive \
+            -project "$PROJECT_NAME.xcodeproj" \
+            -scheme "$SCHEME_NAME" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/build/$PROJECT_NAME.xcarchive \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+          
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/build/$PROJECT_NAME.xcarchive \
+            -exportPath $CM_BUILD_DIR/build/export \
+            -exportOptionsPlist /Users/builder/exportOptions.plist
+    artifacts:
+      - $CM_BUILD_DIR/build/export/*.ipa
