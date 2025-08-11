@@ -1,60 +1,29 @@
-import SwiftUI 
+import SwiftUI
+import WebKit
 
-struct ContentView: View {
-    
- 
-    
-    @StateObject var network = Network()
-    
-    struct GrowingButton: ButtonStyle {
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .font(.largeTitle)
-                .padding()
-                .padding()
-                .background(Color.accentColor)
-                .foregroundColor(.white)
-                .clipShape(Capsule())
-                .scaleEffect(configuration.isPressed ? 1.2 : 1)
-                .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
-        }
+// هذا هو المكون الذي يعرض صفحة الويب
+struct WebView: UIViewRepresentable {
+    // الرابط الذي سيتم فتحه
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        return WKWebView()
     }
-    
-    func reload() {
-       _ = network.checkConnection() 
-    } 
-    
-    let defaults = UserDefaults.standard;
-    
-    var body: some View {
-        ZStack {
-             
-            if (true) {
-                WebView(url: URL(string: "https://animals.bio?v=\(defaults.integer(forKey:"counter"))")!).onAppear {
-                    defaults.set(defaults.integer(forKey:"counter") + 1 , forKey: "counter") 
-                }
-            }
-            else {
-                VStack {
-                    Text("You need internet to play Animals.bio")
-                        .font(.largeTitle)
-                        .padding()
-                        .padding()
-                        .multilineTextAlignment(.center)
-                    Button("Reload") {
-                        reload()
-                    }
-                    .buttonStyle(GrowingButton())
-                    .padding() 
-                }
-            }
-        }
-        .ignoresSafeArea()
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        let request = URLRequest(url: url)
+        webView.load(request)
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+// هذه هي الواجهة الرئيسية للتطبيق
+struct ContentView: View {
+    // هنا نضع رابط موقعك
+    private let websiteURL = URL(string: "https://chatzeus.vercel.app" )!
+
+    var body: some View {
+        // اعرض الـ WebView واجعله يملأ الشاشة
+        WebView(url: websiteURL)
+            .ignoresSafeArea() // هذا يجعل الموقع يمتد تحت شريط الحالة
     }
 }
