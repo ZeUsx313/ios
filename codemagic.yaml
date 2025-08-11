@@ -1,0 +1,45 @@
+workflows:
+  ios-app-unsigned:
+    name: Build Unsigned iOS App
+    instance_type: mac_mini_m1
+    environment:
+      xcode: latest
+      vars:
+        PROJECT_NAME: "Animals"
+        SCHEME_NAME: "Animals"
+    scripts:
+      - name: Build and Export Unsigned IPA
+        script: |
+          xcodebuild -project "$PROJECT_NAME.xcodeproj" \
+                     -scheme "$SCHEME_NAME" \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -archivePath $CM_BUILD_DIR/build/$PROJECT_NAME.xcarchive \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO
+
+          # This is a critical part - we need a specific plist file to export an unsigned IPA
+          cat > $CM_BUILD_DIR/ExportOptions.plist << EOL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>ad-hoc</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>stripSwiftSymbols</key>
+              <true/>
+              <key>teamID</key>
+              <string></string>
+          </dict>
+          </plist>
+          EOL
+
+          xcodebuild -exportArchive \
+                     -archivePath $CM_BUILD_DIR/build/$PROJECT_NAME.xcarchive \
+                     -exportPath $CM_BUILD_DIR/build/export \
+                     -exportOptionsPlist $CM_BUILD_DIR/ExportOptions.plist
+
+    artifacts:
+      - $CM_BUILD_DIR/build/export/*.ipa
