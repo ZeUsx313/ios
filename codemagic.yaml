@@ -5,10 +5,30 @@ workflows:
     environment:
       xcode: latest
       vars:
-        # اسم المشروع والمخطط من القالب هو "Animals"
         PROJECT_NAME: "Animals"
         SCHEME_NAME: "Animals"
     scripts:
+      # الخطوة الجديدة: إنشاء ملف الإعدادات المفقود
+      - name: Create export options
+        script: | 
+          cat > $CM_BUILD_DIR/exportOptions.plist << EOL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>ad-hoc</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.example.Animals</key> 
+                  <string></string>
+              </dict>
+          </dict>
+          </plist>
+          EOL
+
       - name: Build and Export IPA
         script: | 
           xcodebuild archive \
@@ -22,6 +42,6 @@ workflows:
           xcodebuild -exportArchive \
             -archivePath $CM_BUILD_DIR/build/$PROJECT_NAME.xcarchive \
             -exportPath $CM_BUILD_DIR/build/export \
-            -exportOptionsPlist /Users/builder/exportOptions.plist
+            -exportOptionsPlist $CM_BUILD_DIR/exportOptions.plist
     artifacts:
       - $CM_BUILD_DIR/build/export/*.ipa
