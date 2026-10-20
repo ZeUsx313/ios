@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
+    if: false # Intel verification is running in cobrapk8ggggggg-tech/zeus.
     runs-on: macos-26
     timeout-minutes: 40
     steps:
